@@ -6,8 +6,6 @@ import (
 	"alex/ptp1588boundaryclock/datatypes"
 )
 
-// test
-
 func main () {
 	//TODO: POWERUP event (see 9.2.6.2), the execution of this event shall preclude assigning a
 	//TODO: clockClass value of 6, 7, 13, or 14.
