@@ -2,6 +2,7 @@ package datatypes
 
 // The ClockIdentity type identifies a clock
 // In our implementation we merge two octets to one byte. Shifting will be necessary again.
+// github test
 type ClockIdentity [8]byte
 
 // The ClockQuality represents the quality of a clock.
