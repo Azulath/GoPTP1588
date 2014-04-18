@@ -38,10 +38,10 @@ func main () {
 	portDS.DelayMechanism = 0x01
 	portDS.VersionNumber = uint8(2)
 
-	fmt.Println(defaultDS)
-	fmt.Println(currentDS)
-	fmt.Println(parentDS)
-	fmt.Println(timePropertiesDS)
-	fmt.Println(portDS)
+	fmt.Printf("DefaultDS: %+v\n", defaultDS)
+	fmt.Printf("CurrentDS: %+v\n", currentDS)
+	fmt.Printf("ParentDS: %+v\n", parentDS)
+	fmt.Printf("TimePropertiesDS: %+v\n", timePropertiesDS)
+	fmt.Printf("PortDS: %+v\n", portDS)
 }
 
