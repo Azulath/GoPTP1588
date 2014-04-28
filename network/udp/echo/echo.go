@@ -33,6 +33,7 @@ func handleClient(conn *net.UDPConn) {
 	}
 
 	fmt.Printf("Received: %+v", string(buff[0:n]))
+	fmt.Printf("Received: %+v", buff[0:n])
 	_, err2 := conn.WriteToUDP(([]byte)(buff[0:n]), addr)
 	if err2 != nil {
 		return
@@ -47,5 +48,5 @@ func checkError (err error) {
 }
 
 func PrintStudd() {
-	fmt.Println("go routine printening")
+	fmt.Println("\ngo routine printening")
 }
