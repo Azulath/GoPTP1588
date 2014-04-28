@@ -40,9 +40,10 @@ func writePTPHeader(portDS datasets.PortDS, defaultDS datasets.DefaultDS, timePr
 	header[5] = 0
 	// flag -> mega many much stuff
 	header[6], header[7] = setHeaderFlagField(defaultDS, timePropertiesDS, msgType)
-	// correction field int64 -> slice
-	header[8] = 0
-	header[15] = 0
+	// correction field int64 -> slice (dürft für uns unwichtig sein)
+	for i := 8; i < 16; i++{
+		header[i] = 0
+	}
 	// reserved
 	header[16], header[17], header[18], header[19] = 0, 0, 0, 0
 	// sourcePortIdentity PortIdentity -> slice
