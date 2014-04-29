@@ -25,19 +25,18 @@ func main() {
 func handleClient(conn *net.UDPConn) {
 	var buff [512]byte
 	
-	n, addr, err := conn.ReadFromUDP(buff[0:])
-	go PrintStudd()
+	n, _, err := conn.ReadFromUDP(buff[0:])
 	
 	if err != nil {
 		return
 	}
 
-	fmt.Printf("Received: %+v", string(buff[0:n]))
-	fmt.Printf("Received: %+v", buff[0:n])
-	_, err2 := conn.WriteToUDP(([]byte)(buff[0:n]), addr)
+	//fmt.Printf("Received: %+v", string(buff[0:n]))
+	fmt.Printf("Received %v Bytes: %+v\n", n,  buff[0:n])
+/*	_, err2 := conn.WriteToUDP(([]byte)(buff[0:n]), addr)
 	if err2 != nil {
 		return
-	}
+	}*/
 }
 
 func checkError (err error) {
@@ -45,8 +44,4 @@ func checkError (err error) {
 		fmt.Fprintf(os.Stderr, "Fatal error")
 		os.Exit(1)
 	}
-}
-
-func PrintStudd() {
-	fmt.Println("\ngo routine printening")
 }

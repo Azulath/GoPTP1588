@@ -53,6 +53,11 @@ func main() {
 	zahl += (1<<1)
 	zahl += (1<<2)
 	fmt.Println(zahl)
+
+	test := new(datasets.DefaultDS)
+	fmt.Println(test)
+	fmt.Println(*test)
+	fmt.Println(&test)
 }
 
 

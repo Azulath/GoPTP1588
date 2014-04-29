@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"alex/ptp1588boundaryclock/datasets"
 	"alex/ptp1588boundaryclock/datatypes"
+	"alex/ptp1588boundaryclock/communication"
 )
 
 func main () {
@@ -38,10 +39,19 @@ func main () {
 	portDS.DelayMechanism = 0x01
 	portDS.VersionNumber = uint8(2)
 
-	fmt.Printf("DefaultDS: %+v\n", defaultDS)
-	fmt.Printf("CurrentDS: %+v\n", currentDS)
-	fmt.Printf("ParentDS: %+v\n", parentDS)
-	fmt.Printf("TimePropertiesDS: %+v\n", timePropertiesDS)
-	fmt.Printf("PortDS: %+v\n", portDS)
+	// DEBUG STUFF!!!!
+	portDS.PortIdentity.PortNumber = 1337
+	portDS.PortIdentity.ClockIdentity = datatypes.ClockIdentity{0xCA, 0xFF, 0xEE, 1, 2, 3, 4, 5}
+
+	//fmt.Printf("DefaultDS: %+v\n", defaultDS)
+	//fmt.Printf("CurrentDS: %+v\n", currentDS)
+	//fmt.Printf("ParentDS: %+v\n", parentDS)
+	//fmt.Printf("TimePropertiesDS: %+v\n", timePropertiesDS)
+	//fmt.Printf("PortDS: %+v\n", portDS)
+
+	fmt.Println("============================")
+	fmt.Println("DEBUG")
+	fmt.Println("============================")
+	communication.MessageSender("127.0.0.1", "1201", *portDS, *defaultDS, *timePropertiesDS, communication.Announce)
 }
 
