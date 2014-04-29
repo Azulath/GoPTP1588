@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"alex/ptp1588boundaryclock/communication"
 	"alex/ptp1588boundaryclock/datasets"
+	_"time"
+	"alex/msc/tests/stuff"
+	"time"
 )
 
 func main() {
@@ -58,6 +61,15 @@ func main() {
 	fmt.Println(test)
 	fmt.Println(*test)
 	fmt.Println(&test)
+
+	//time.Sleep(100 * time.Millisecond)
+
+	car1, car2 := new(stuff.Car), new(stuff.Car)
+	car1.Id = 10
+	car2.Id = 20
+	go stuff.TestCar(*car1, 1, 500)
+	go stuff.TestCar(*car2, 2, 10)
+
+	time.Sleep(10 * time.Second)
+	fmt.Println("Exit")
 }
-
-

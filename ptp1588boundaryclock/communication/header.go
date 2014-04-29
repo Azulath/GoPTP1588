@@ -1,7 +1,14 @@
 package communication
 
+import "alex/ptp1588boundaryclock/datasets"
+
+// =====================================================================================================================
+// Write Header
+// =====================================================================================================================
+
 // Creates the header as specified in 13.3
-func writePTPHeader() []byte {
+func WritePTPHeader(defaultDS datasets.DefaultDS, portDS datasets.PortDS,
+	timePropertiesDS datasets.TimePropertiesDS, msgType MessageType) []byte {
 	//TODO transport specific stuff...
 	header := make([]byte, 34)
 	// transportSpecific AND messageType
@@ -15,7 +22,7 @@ func writePTPHeader() []byte {
 	// reserved -> 0
 	header[5] = 0
 	// flagField
-	header[6], header[7] = setHeaderFlagField()
+	header[6], header[7] = setHeaderFlagField(&defaultDS, &timePropertiesDS, msgType)
 	// correction field int64 -> seems unimportant
 	for i := 8; i < 16; i++ {
 		header[i] = 0
@@ -23,14 +30,14 @@ func writePTPHeader() []byte {
 	// reserved
 	header[16], header[17], header[18], header[19] = 0, 0, 0, 0
 	// sourcePortIdentity PortIdentity
-	setPortIdentity(header[20:30])
+	setHeaderPortIdentity(header[20:30], &portDS)
 	// sequenceID of the message
 	header[30] = 0
 	header[31] = 0
 	// controlField -> DEPRECATED
-	header[32] = setControlField()
+	header[32] = setHeaderControlField(msgType)
 	// logMessageInterval
-	header[33] = setLogMessageInterval()
+	header[33] = setHeaderLogMessageInterval(&portDS, msgType)
 	return header
 }
 
@@ -42,7 +49,8 @@ func calculateMessageLength() (byte, byte) {
 }
 
 // Sets the header flag filed as specified in 13.3.2.6
-func setHeaderFlagField() (flagField1 byte, flagField2 byte) {
+func setHeaderFlagField(defaultDS *datasets.DefaultDS,
+	timePropertiesDS *datasets.TimePropertiesDS, msgType MessageType) (flagField1 byte, flagField2 byte) {
 	// TODO: i versteh 13.3 Table 20 net
 	// Byte 1
 	if msgType == Announce || msgType == Sync || msgType == Follow_Up || msgType == Delay_Resp {
@@ -80,7 +88,7 @@ func setHeaderFlagField() (flagField1 byte, flagField2 byte) {
 
 // Sets the PortIdentity field
 // 13.3.2.8
-func setPortIdentity(identity []byte) {
+func setHeaderPortIdentity(identity []byte, portDS *datasets.PortDS) {
 	for key, value := range portDS.PortIdentity.ClockIdentity {
 		identity[key] = value
 	}
@@ -89,7 +97,7 @@ func setPortIdentity(identity []byte) {
 
 // Sets the deprecated ControlField
 // 13.3.2.10
-func setControlField() (ctrlField byte) {
+func setHeaderControlField(msgType MessageType) (ctrlField byte) {
 	if msgType == Sync {
 		ctrlField = 0x00
 	} else if msgType == Delay_Req {
@@ -106,7 +114,7 @@ func setControlField() (ctrlField byte) {
 	return
 }
 
-func setLogMessageInterval() (log byte) {
+func setHeaderLogMessageInterval(portDS *datasets.PortDS, msgType MessageType) (log byte) {
 	if msgType == Announce {
 		log = uint8(portDS.LogAnnouncedInterval | 0x00)
 	} else if msgType == Sync || msgType == Follow_Up {
@@ -120,3 +128,7 @@ func setLogMessageInterval() (log byte) {
 	}
 	return
 }
+
+// =====================================================================================================================
+// Read Header
+// =====================================================================================================================

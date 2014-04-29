@@ -52,6 +52,7 @@ func main () {
 	fmt.Println("============================")
 	fmt.Println("DEBUG")
 	fmt.Println("============================")
-	communication.MessageSender("127.0.0.1", "1201", *portDS, *defaultDS, *timePropertiesDS, communication.Announce)
+	communication.MessageSender("127.0.0.1", "1201",
+		*defaultDS, *currentDS, *parentDS, *portDS, *timePropertiesDS, communication.Announce)
 }
 

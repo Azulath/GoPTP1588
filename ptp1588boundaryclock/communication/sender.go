@@ -4,37 +4,30 @@ import (
 	"net"
 	"alex/msc/helper"
 	"alex/ptp1588boundaryclock/datasets"
-)
-
-// Global Variables in communication! (concurrency)
-var (
-	portDS datasets.PortDS
-	defaultDS datasets.DefaultDS
-	timePropertiesDS datasets.TimePropertiesDS
-	msgType MessageType
+	"alex/ptp1588boundaryclock/communication/general"
 )
 
 // Prepares and sends the UDP packet to the specified IP address and port
-func MessageSender(ipAddress, port string, portDs datasets.PortDS, defaultDs datasets.DefaultDS, timePropertiesDs datasets.TimePropertiesDS, messageType MessageType) {
+func MessageSender(ipAddress, port string,
+	defaultDS datasets.DefaultDS, currentDS datasets.CurrentDS, parentDS datasets.ParentDS,
+	portDs datasets.PortDS, timePropertiesDS datasets.TimePropertiesDS,
+	msgType MessageType) {
 	address := ipAddress + ":" + port
-	portDS = portDs
-	defaultDS = defaultDs
-	timePropertiesDS = timePropertiesDs
-	msgType = messageType
 
 	udpAddr, err := net.ResolveUDPAddr("udp", address)
 	helper.ErrHandling(err)
 
 	connection, err := net.DialUDP("udp", nil, udpAddr)
 	helper.ErrHandling(err)
-	handleServer(connection, writePTPHeader())
+	handleServer(connection, append(WritePTPHeader(defaultDS, portDs, timePropertiesDS, msgType),
+		general.WriteAnnounceMessages(currentDS, parentDS, timePropertiesDS)...))
 
 }
 
 // Writes 'on' the connection
-func handleServer(connection *net.UDPConn, header []byte) {
+func handleServer(connection *net.UDPConn, msg []byte) {
 	//var buffer [512]byte
 	//_, err := connection.Write([]byte("writening going on"))
-	_, err := connection.Write(header)
+	_, err := connection.Write(msg)
 	helper.ErrHandling(err)
 }
