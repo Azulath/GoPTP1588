@@ -2,27 +2,36 @@ package communication
 
 import "alex/ptp1588boundaryclock/datasets"
 
+type Header struct {
+	DefaultDS *datasets.DefaultDS
+	PortDS *datasets.PortDS
+	TimePropertiesDS *datasets.TimePropertiesDS
+	MsgType MessageType
+}
+
+const (
+	HeaderLength uint8 = 34
+)
+
 // =====================================================================================================================
 // Write Header
 // =====================================================================================================================
 
 // Creates the header as specified in 13.3
-func WritePTPHeader(defaultDS datasets.DefaultDS, portDS datasets.PortDS,
-	timePropertiesDS datasets.TimePropertiesDS, msgType MessageType) []byte {
+func (h *Header) Write(header []byte, done chan bool) {
 	//TODO transport specific stuff...
-	header := make([]byte, 34)
 	// transportSpecific AND messageType
-	header[0] = byte(msgType)
+	header[0] = byte(h.MsgType)
 	// reserved AND versionPTP (2)
-	header[1] = portDS.VersionNumber
+	header[1] = h.PortDS.VersionNumber
 	// messageLength
 	header[2], header[3] = calculateMessageLength()
 	// domainNumber -> defaultDS.domainNumber
-	header[4] = defaultDS.DomainNumber
+	header[4] = h.DefaultDS.DomainNumber
 	// reserved -> 0
 	header[5] = 0
 	// flagField
-	header[6], header[7] = setHeaderFlagField(&defaultDS, &timePropertiesDS, msgType)
+	header[6], header[7] = setHeaderFlagField(h.DefaultDS, h.TimePropertiesDS, h.MsgType)
 	// correction field int64 -> seems unimportant
 	for i := 8; i < 16; i++ {
 		header[i] = 0
@@ -30,15 +39,15 @@ func WritePTPHeader(defaultDS datasets.DefaultDS, portDS datasets.PortDS,
 	// reserved
 	header[16], header[17], header[18], header[19] = 0, 0, 0, 0
 	// sourcePortIdentity PortIdentity
-	setHeaderPortIdentity(header[20:30], &portDS)
+	setHeaderPortIdentity(header[20:30], h.PortDS)
 	// sequenceID of the message
 	header[30] = 0
 	header[31] = 0
 	// controlField -> DEPRECATED
-	header[32] = setHeaderControlField(msgType)
+	header[32] = setHeaderControlField(h.MsgType)
 	// logMessageInterval
-	header[33] = setHeaderLogMessageInterval(&portDS, msgType)
-	return header
+	header[33] = setHeaderLogMessageInterval(h.PortDS, h.MsgType)
+	done <- true
 }
 
 // Calculates the length of the message
