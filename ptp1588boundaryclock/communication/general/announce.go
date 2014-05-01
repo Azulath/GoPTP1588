@@ -2,11 +2,10 @@ package general
 
 import (
 	"alex/ptp1588boundaryclock/datasets"
-	"alex/ptp1588boundaryclock/datatypes"
 )
 
 type AnnounceMessage struct {
-	CurrentDS *datasets.CurrentDS
+	StepsRemoved uint16
 	ParentDS *datasets.ParentDS
 	TimePropertiesDS *datasets.TimePropertiesDS
 }
@@ -24,26 +23,27 @@ func (a *AnnounceMessage) Write(announce []byte, done chan bool) {
 	// grandmasterPriority1
 	announce[13] = a.ParentDS.GrandmasterPriority1
 	// grandmasterClockQualtiy
-	setAnnounceGrandmasterClockQuality(announce[14:18], &a.ParentDS.GrandmasterClockQuality)
+	a.setAnnounceGrandmasterClockQuality(announce[14:18])
 	// grandmasterPriority2
 	announce[18] = a.ParentDS.GrandmasterPriority2
 	// grandmasterIdentity
-	setAnnounceGrandmasterIdentity(announce[19:27], &a.ParentDS.GrandmasterIdentity)
+	a.setAnnounceGrandmasterIdentity(announce[19:27])
 	// stepsRemoved
-	announce[27], announce[28] = uint8(a.CurrentDS.StepsRemoved >> 8), uint8(a.CurrentDS.StepsRemoved)
+	announce[27], announce[28] = uint8(a.StepsRemoved >> 8), uint8(a.StepsRemoved)
 	// timeSource
 	announce[29] = a.TimePropertiesDS.TimeSource
 	done <- true
 }
 
-func setAnnounceGrandmasterClockQuality(quality []byte, clockQuality *datatypes.ClockQuality) {
-	quality[0] = clockQuality.ClockClass
-	quality[1] = clockQuality.ClockAccuracy
-	quality[2], quality[3] = uint8(clockQuality.OffsetScaledVarianceLog >> 8), uint8(clockQuality.OffsetScaledVarianceLog)
+func (a* AnnounceMessage) setAnnounceGrandmasterClockQuality(quality []byte) {
+	quality[0] = a.ParentDS.GrandmasterClockQuality.ClockClass
+	quality[1] = a.ParentDS.GrandmasterClockQuality.ClockAccuracy
+	quality[2] = uint8(a.ParentDS.GrandmasterClockQuality.OffsetScaledVarianceLog >> 8)
+	quality[3] = uint8(a.ParentDS.GrandmasterClockQuality.OffsetScaledVarianceLog)
 }
 
-func setAnnounceGrandmasterIdentity(identity []byte, clockIdentity *datatypes.ClockIdentity) {
-	for key, value := range clockIdentity {
+func (a* AnnounceMessage) setAnnounceGrandmasterIdentity(identity []byte) {
+	for key, value := range a.ParentDS.GrandmasterIdentity {
 		identity[key] = value
 	}
 }

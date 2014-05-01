@@ -27,8 +27,9 @@ func MessageSender(ipAddress, port string,
 	var msgText Message
 
 	// Maybe function for this...
+	// TODO: Rest
 	if msgType == Announce {
-		msgText = &general.AnnounceMessage{&currentDS, &parentDS, &timePropertiesDS}
+		msgText = &general.AnnounceMessage{currentDS.StepsRemoved, &parentDS, &timePropertiesDS}
 	}
 
 	done := make(chan bool)

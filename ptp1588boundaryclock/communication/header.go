@@ -25,13 +25,13 @@ func (h *Header) Write(header []byte, done chan bool) {
 	// reserved AND versionPTP (2)
 	header[1] = h.PortDS.VersionNumber
 	// messageLength
-	header[2], header[3] = calculateMessageLength()
+	header[2], header[3] = h.calculateMessageLength()
 	// domainNumber -> defaultDS.domainNumber
 	header[4] = h.DefaultDS.DomainNumber
 	// reserved -> 0
 	header[5] = 0
 	// flagField
-	header[6], header[7] = setHeaderFlagField(h.DefaultDS, h.TimePropertiesDS, h.MsgType)
+	header[6], header[7] = h.setHeaderFlagField()
 	// correction field int64 -> seems unimportant
 	for i := 8; i < 16; i++ {
 		header[i] = 0
@@ -39,56 +39,55 @@ func (h *Header) Write(header []byte, done chan bool) {
 	// reserved
 	header[16], header[17], header[18], header[19] = 0, 0, 0, 0
 	// sourcePortIdentity PortIdentity
-	setHeaderPortIdentity(header[20:30], h.PortDS)
+	h.setHeaderPortIdentity(header[20:30])
 	// sequenceID of the message
 	header[30] = 0
 	header[31] = 0
 	// controlField -> DEPRECATED
-	header[32] = setHeaderControlField(h.MsgType)
+	header[32] = h.setHeaderControlField()
 	// logMessageInterval
-	header[33] = setHeaderLogMessageInterval(h.PortDS, h.MsgType)
+	header[33] = h.setHeaderLogMessageInterval()
 	done <- true
 }
 
 // Calculates the length of the message
 // Will be larger than the header (34)
-func calculateMessageLength() (byte, byte) {
-	length := uint16(35)
+func (h *Header) calculateMessageLength() (byte, byte) {
+	length := uint16(h.MsgType.GetLength() + HeaderLength)
 	return uint8(length >> 8), uint8(length)
 }
 
 // Sets the header flag filed as specified in 13.3.2.6
-func setHeaderFlagField(defaultDS *datasets.DefaultDS,
-	timePropertiesDS *datasets.TimePropertiesDS, msgType MessageType) (flagField1 byte, flagField2 byte) {
+func (h *Header) setHeaderFlagField() (flagField1 byte, flagField2 byte) {
 	// TODO: i versteh 13.3 Table 20 net
 	// Byte 1
-	if msgType == Announce || msgType == Sync || msgType == Follow_Up || msgType == Delay_Resp {
+	if h.MsgType == Announce || h.MsgType == Sync || h.MsgType == Follow_Up || h.MsgType == Delay_Resp {
 		flagField1 += 0
 	}
 
-	if (msgType == Sync || msgType == Pdelay_Resp) && defaultDS.TwoStepFlag {
+	if (h.MsgType == Sync || h.MsgType == Pdelay_Resp) && h.DefaultDS.TwoStepFlag {
 		flagField1 += (1<<1)
 	}
 
 	// TODO: if unicast und rest
 	// Byte 2
-	if msgType == Announce {
-		if timePropertiesDS.Leap61 {
+	if h.MsgType == Announce {
+		if h.TimePropertiesDS.Leap61 {
 			flagField2 += 1
 		}
-		if timePropertiesDS.Leap59 {
+		if h.TimePropertiesDS.Leap59 {
 			flagField2 += (1<<1)
 		}
-		if timePropertiesDS.CurrentUtcOffsetValid {
+		if h.TimePropertiesDS.CurrentUtcOffsetValid {
 			flagField2 += (1<<2)
 		}
-		if timePropertiesDS.PtpTimescale {
+		if h.TimePropertiesDS.PtpTimescale {
 			flagField2 += (1<<3)
 		}
-		if timePropertiesDS.TimeTraceable {
+		if h.TimePropertiesDS.TimeTraceable {
 			flagField2 += (1<<4)
 		}
-		if timePropertiesDS.FrequencyTraceable {
+		if h.TimePropertiesDS.FrequencyTraceable {
 			flagField2 += (1<<5)
 		}
 	}
@@ -97,25 +96,25 @@ func setHeaderFlagField(defaultDS *datasets.DefaultDS,
 
 // Sets the PortIdentity field
 // 13.3.2.8
-func setHeaderPortIdentity(identity []byte, portDS *datasets.PortDS) {
-	for key, value := range portDS.PortIdentity.ClockIdentity {
+func (h* Header) setHeaderPortIdentity(identity []byte) {
+	for key, value := range h.PortDS.PortIdentity.ClockIdentity {
 		identity[key] = value
 	}
-	identity[8], identity[9] = uint8(portDS.PortIdentity.PortNumber >> 8), uint8(portDS.PortIdentity.PortNumber)
+	identity[8], identity[9] = uint8(h.PortDS.PortIdentity.PortNumber >> 8), uint8(h.PortDS.PortIdentity.PortNumber)
 }
 
 // Sets the deprecated ControlField
 // 13.3.2.10
-func setHeaderControlField(msgType MessageType) (ctrlField byte) {
-	if msgType == Sync {
+func (h* Header) setHeaderControlField() (ctrlField byte) {
+	if h.MsgType == Sync {
 		ctrlField = 0x00
-	} else if msgType == Delay_Req {
+	} else if h.MsgType == Delay_Req {
 		ctrlField = 0x01
-	} else if msgType == Follow_Up {
+	} else if h.MsgType == Follow_Up {
 		ctrlField = 0x02
-	} else if msgType == Delay_Resp {
+	} else if h.MsgType == Delay_Resp {
 		ctrlField = 0x03
-	} else if msgType == Management {
+	} else if h.MsgType == Management {
 		ctrlField = 0x04
 	} else {
 		ctrlField = 0x05
@@ -123,13 +122,13 @@ func setHeaderControlField(msgType MessageType) (ctrlField byte) {
 	return
 }
 
-func setHeaderLogMessageInterval(portDS *datasets.PortDS, msgType MessageType) (log byte) {
-	if msgType == Announce {
-		log = uint8(portDS.LogAnnouncedInterval | 0x00)
-	} else if msgType == Sync || msgType == Follow_Up {
+func (h* Header) setHeaderLogMessageInterval() (log byte) {
+	if h.MsgType == Announce {
+		log = uint8(h.PortDS.LogAnnouncedInterval | 0x00)
+	} else if h.MsgType == Sync || h.MsgType == Follow_Up {
 		// TODO: Multicast
 		log = 0x7f
-	} else if msgType == Delay_Resp {
+	} else if h.MsgType == Delay_Resp {
 		// TODO: Multicast
 		log = 0x7f
 	} else {
