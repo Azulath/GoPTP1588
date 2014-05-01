@@ -10,6 +10,10 @@ type AnnounceMessage struct {
 	TimePropertiesDS *datasets.TimePropertiesDS
 }
 
+// =====================================================================================================================
+// Write Announce Message
+// =====================================================================================================================
+
 func (a *AnnounceMessage) Write(announce []byte, done chan bool) {
 	// originTimestamp (Timestamp) 13.5.2.1
 	// TODO: implement
@@ -47,3 +51,7 @@ func (a* AnnounceMessage) setAnnounceGrandmasterIdentity(identity []byte) {
 		identity[key] = value
 	}
 }
+
+// =====================================================================================================================
+// Read Announce Message
+// =====================================================================================================================

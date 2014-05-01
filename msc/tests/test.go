@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"alex/ptp1588boundaryclock/communication"
 	"alex/ptp1588boundaryclock/datasets"
-	"time"
+	_"time"
 )
 
 func main() {
@@ -68,6 +68,16 @@ func main() {
 	go stuff.TestCar(*car1, 1, 500)
 	go stuff.TestCar(*car2, 2, 10)*/
 
-	time.Sleep(10 * time.Second)
+	//time.Sleep(10 * time.Second)
 	fmt.Println("Exit")
+
+	var signed int8
+	var unsigned uint8
+
+	signed = -127
+	fmt.Println(signed)
+	unsigned = uint8(signed)
+	fmt.Println(unsigned)
+
+	fmt.Println(int8(unsigned))
 }

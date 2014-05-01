@@ -124,7 +124,7 @@ func (h* Header) setHeaderControlField() (ctrlField byte) {
 
 func (h* Header) setHeaderLogMessageInterval() (log byte) {
 	if h.MsgType == Announce {
-		log = uint8(h.PortDS.LogAnnouncedInterval | 0x00)
+		log = uint8(h.PortDS.LogAnnouncedInterval)
 	} else if h.MsgType == Sync || h.MsgType == Follow_Up {
 		// TODO: Multicast
 		log = 0x7f
